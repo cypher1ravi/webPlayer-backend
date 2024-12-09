@@ -1,8 +1,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const app = express();
 const PORT = 3000;
+
+
+
+
+// Allow all origins
+app.use(cors());
+
+// Example route
+app.get('/', (req, res) => {
+    res.send('CORS is enabled for all origins!');
+});
 
 // Middleware to parse JSON bodies
 app.use(bodyParser.json());
