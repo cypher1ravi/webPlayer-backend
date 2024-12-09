@@ -277,6 +277,8 @@ async function openRTB_2_5(vastTag, data) {
             "tmax": timeoutmax
         };
 
+        console.log("DataObject: ", sampledata);
+
         const vastResponse = await openRTB_Vast(sampledata, vastTag, data?.protocolversion);
 
         return vastResponse;
@@ -306,6 +308,8 @@ async function openRTB_Vast(sampledata, vastTag, version) {
                 'x-openrtb-version': version ?? "2.5"
             }
         });
+
+        console.log("Response Data: ", data);
 
         if (data?.status !== 200) {
             return {
