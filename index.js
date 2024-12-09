@@ -304,7 +304,6 @@ async function openRTB_Vast(sampledata, vastTag, version) {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept-Encoding': 'gzip',
-                'Content-Encoding': 'gzip',
                 'x-openrtb-version': version ?? "2.5"
             }
         });
