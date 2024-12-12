@@ -1,23 +1,20 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const axios = require('axios');
+
 
 const app = express();
 const PORT = 3000;
 
-
-
-
-// Allow all origins
+// Middleware to parse JSON bodies
+app.use(bodyParser.json());
 app.use(cors());
 
 // Example route
 app.get('/', (req, res) => {
     res.send('CORS is enabled for all origins!');
 });
-
-// Middleware to parse JSON bodies
-app.use(bodyParser.json());
 
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -67,7 +64,13 @@ function generateComplexID() {
     return `${part1}_${part2}`;
 }
 
+function generateRandomImpId() {
+    const randomNumber = Math.floor(10000 + Math.random() * 9000);
+    return `${'imp'}${randomNumber}`;
+}
+
 async function openRTB_2_5(vastTag, data) {
+
     try {
         const id = `${generateComplexID()}_${data?.adssourceId}`;
         const timeoutmax = data?.timeout ?? 5000;
@@ -130,7 +133,7 @@ async function openRTB_2_5(vastTag, data) {
 
         // Impression
         const bidfloor = data?.minCpm ?? 0.01;
-        const impressionId = data?.impressionId ?? generateCustomID();
+        const impressionId = generateRandomImpId();
         const impressionTagId = data?.tagid ?? "5391078";
         const impressionInterstitial = data?.interstitial ?? 0; // Indicates if the impression is interstitial or not. Values: 1 = interstitial, 0 = not interstitial
 
@@ -191,7 +194,7 @@ async function openRTB_2_5(vastTag, data) {
                     "context": 1,
                     "ext": {},
                     "title": "",
-                    "episode": "",
+                    "episode": 0,
                     "url": "",
                     "series": "",
                     "season": ""
@@ -277,7 +280,8 @@ async function openRTB_2_5(vastTag, data) {
             "tmax": timeoutmax
         };
 
-        console.log("DataObject: ", JSON.stringify(sampledata));
+
+
 
         const vastResponse = await openRTB_Vast(sampledata, vastTag, data?.protocolversion);
 
@@ -299,14 +303,15 @@ async function openRTB_Vast(sampledata, vastTag, version) {
 
     try {
         const data = await fetch(vastTag, {
-            method: 'POST',
-            body: JSON.stringify(sampledata),
+            method: "POST", // Assuming it's a POST request; update if needed
             headers: {
-                'Content-Type': 'application/json',
-                'Accept-Encoding': 'gzip',
-                'x-openrtb-version': version ?? "2.5"
-            }
+                "Content-Type": "application/json",
+                "Accept-Encoding": "gzip",
+                "x-openrtb-version": version ?? "2.5",
+            },
+            body: JSON.stringify(sampledata), // Send `sampledata` as the request body
         });
+
         if (data?.status !== 200) {
             return {
                 status: "no-ad",
@@ -316,7 +321,6 @@ async function openRTB_Vast(sampledata, vastTag, version) {
                 price: null,
             };
         }
-
         const response = await data.json();
 
         const vastString = response?.seatbid?.[0]?.bid?.[0]?.adm;
@@ -342,9 +346,12 @@ async function openRTB_Vast(sampledata, vastTag, version) {
 }
 
 app.post('/api/openrtb', async (req, res) => {
+
+
     try {
         const vastTag = req.body.vastTag;
         const data = req.body.data;
+
 
         if (!vastTag || !data) {
             return res.status(400).json({ error: "vastTag and data are required" });
